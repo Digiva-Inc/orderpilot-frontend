@@ -15,6 +15,17 @@ export default function EditOrder({ params }) {
   const [orderNumber, setOrderNumber] = useState('');
   const [poNumber, setPoNumber] = useState('');
   
+  // Shipping & Export Metadata
+  const [brand, setBrand] = useState('');
+  const [countryOfExport, setCountryOfExport] = useState('');
+  const [deliveryNumber, setDeliveryNumber] = useState('');
+  const [countryOfFinalDestination, setCountryOfFinalDestination] = useState('');
+  const [hpPo, setHpPo] = useState('');
+  const [shippingMethod, setShippingMethod] = useState('');
+  const [shippingTerms, setShippingTerms] = useState('');
+  const [paymentTerms, setPaymentTerms] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  
   // Grid State
   const [items, setItems] = useState([]);
 
@@ -40,6 +51,16 @@ export default function EditOrder({ params }) {
 
           setOrderNumber(order.order_number);
           setPoNumber(order.po_number || '');
+          setBrand(order.brand || '');
+          setCountryOfExport(order.country_of_export || '');
+          setDeliveryNumber(order.delivery_number || '');
+          setCountryOfFinalDestination(order.country_of_final_destination || '');
+          setHpPo(order.hp_po || '');
+          setShippingMethod(order.shipping_method || '');
+          setShippingTerms(order.shipping_terms || '');
+          setPaymentTerms(order.payment_terms || '');
+          setDueDate(order.due_date || '');
+
           const cust = custs.find(c => c.id == order.customer_id);
           setSelectedCustomer(cust || null);
 
@@ -55,7 +76,7 @@ export default function EditOrder({ params }) {
             unit_cost: item.unit_price,
             amount: Number(item.sub_total)
           }));
-          setItems(mappedItems.length ? mappedItems : [{ id: 1, product_id: '', sap_no: '', upc_no: '', image_url: '', units_per_case: 1, cases: 1, qty: 1, unit_cost: 0, amount: 0 }]);
+          setItems(mappedItems.length ? mappedItems : [{ id: 1, product_id: '', sap_no: '', upc_no: '', image_url: '', units_per_case: 1, cases: '', qty: '', unit_cost: '', amount: '' }]);
         }
       } catch (err) {
         console.error('Failed to fetch data', err);
@@ -76,7 +97,7 @@ export default function EditOrder({ params }) {
   };
 
   const addRow = () => {
-    setItems([...items, { id: Date.now(), product_id: '', sap_no: '', upc_no: '', image_url: '', units_per_case: 1, cases: 1, qty: 1, unit_cost: 0, amount: 0 }]);
+    setItems([...items, { id: Date.now(), product_id: '', sap_no: '', upc_no: '', image_url: '', units_per_case: 1, cases: '', qty: '', unit_cost: '', amount: '' }]);
   };
 
   const removeRow = (id) => {
@@ -97,28 +118,66 @@ export default function EditOrder({ params }) {
         item.upc_no = prod.upc_no || '';
         item.image_url = prod.image_url || '';
         item.units_per_case = prod.units_per_case || 1;
-        item.unit_cost = prod.list_unit_price || 0;
-        item.qty = item.cases * item.units_per_case;
-        item.amount = item.qty * item.unit_cost;
+        item.unit_cost = prod.list_unit_price || '';
+        item.cases = '';
+        item.qty = '';
+        item.amount = '';
       }
     } else if (field === 'cases') {
-      const caseVal = parseInt(value) || 0;
-      item.cases = caseVal;
-      item.qty = caseVal * item.units_per_case;
-      item.amount = item.qty * item.unit_cost;
+      if (value === '') {
+        item.cases = '';
+        item.qty = '';
+        item.amount = '';
+      } else {
+        const caseVal = parseFloat(value) || 0;
+        item.cases = caseVal;
+        item.qty = caseVal * item.units_per_case;
+        item.amount = item.qty * (parseFloat(item.unit_cost) || 0);
+      }
+    } else if (field === 'qty') {
+      if (value === '') {
+        item.qty = '';
+        item.cases = '';
+        item.amount = '';
+      } else {
+        const qtyVal = parseFloat(value) || 0;
+        item.qty = qtyVal;
+        item.cases = qtyVal / item.units_per_case;
+        item.amount = qtyVal * (parseFloat(item.unit_cost) || 0);
+      }
     } else if (field === 'unit_cost') {
-      const cost = parseFloat(value) || 0;
-      item.unit_cost = cost;
-      item.amount = item.qty * cost;
+      if (value === '') {
+        item.unit_cost = '';
+        item.amount = '';
+      } else {
+        const cost = parseFloat(value) || 0;
+        item.unit_cost = cost;
+        item.amount = (parseFloat(item.qty) || 0) * cost;
+      }
+    } else if (field === 'amount') {
+      if (value === '') {
+        item.amount = '';
+        item.unit_cost = '';
+      } else {
+        const amt = parseFloat(value) || 0;
+        item.amount = amt;
+        item.unit_cost = (parseFloat(item.qty) || 0) > 0 ? amt / parseFloat(item.qty) : '';
+      }
     }
 
     setItems(newItems);
   };
 
-  const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
+  const subTotal = items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
   const handleSave = async () => {
     if (!selectedCustomer) return alert("Please select a customer");
+    if (!items.length || items.every(i => !i.product_id)) return alert("Please add at least one product");
+
+    const hasInvalidQty = items.some(item => item.product_id && item.qty !== '' && item.qty % item.units_per_case !== 0);
+    if (hasInvalidQty) {
+      return alert("One or more quantities are not multiples of their case size. Please fix the red highlighted fields.");
+    }
     
     const token = localStorage.getItem('token');
     const orderData = {
@@ -126,6 +185,15 @@ export default function EditOrder({ params }) {
       order_number: orderNumber,
       po_number: poNumber,
       total_amount: subTotal,
+      brand, 
+      country_of_export: countryOfExport, 
+      delivery_number: deliveryNumber, 
+      country_of_final_destination: countryOfFinalDestination, 
+      hp_po: hpPo, 
+      shipping_method: shippingMethod, 
+      shipping_terms: shippingTerms, 
+      payment_terms: paymentTerms, 
+      due_date: dueDate,
       items: items.filter(i => i.product_id).map(i => ({
         product_id: i.product_id,
         cases_ordered: i.cases,
@@ -183,13 +251,13 @@ export default function EditOrder({ params }) {
             </div>
 
             {selectedCustomer && (
-              <div className="p-4 bg-slate-800 rounded-lg text-white shadow-sm relative overflow-hidden">
-                <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full"></div>
-                <h4 className="font-bold text-base mb-1">{selectedCustomer.display_name}</h4>
-                <div className="text-gray-300 text-xs space-y-1">
-                  <p>{selectedCustomer.email} | {selectedCustomer.work_phone}</p>
-                  <p className="pt-2 border-t border-white/20 mt-2 font-medium tracking-wide uppercase">Billing Address</p>
-                  <p>{selectedCustomer.billing_address_1}, {selectedCustomer.billing_city}</p>
+              <div className="p-4 bg-blue-50/50 border border-blue-100 rounded-lg text-slate-800 shadow-sm relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 w-20 h-20 bg-blue-100/50 rounded-full"></div>
+                <h4 className="font-bold text-base mb-1 text-blue-900">{selectedCustomer.display_name}</h4>
+                <div className="text-slate-600 text-xs space-y-1">
+                  <p>{selectedCustomer.email} <span className="mx-1 text-slate-300">|</span> {selectedCustomer.work_phone}</p>
+                  <p className="pt-2 border-t border-blue-100 mt-2 font-bold tracking-wide uppercase text-blue-800/70">Billing Address</p>
+                  <p className="font-medium text-slate-700">{selectedCustomer.billing_address_1}, {selectedCustomer.billing_city}</p>
                 </div>
               </div>
             )}
@@ -215,6 +283,46 @@ export default function EditOrder({ params }) {
                 placeholder="e.g. LX6620J-1"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Shipping & Export Metadata */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Brand</label>
+            <input type="text" value={brand} onChange={e => setBrand(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Country of Export</label>
+            <input type="text" value={countryOfExport} onChange={e => setCountryOfExport(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Delivery #</label>
+            <input type="text" value={deliveryNumber} onChange={e => setDeliveryNumber(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Final Destination</label>
+            <input type="text" value={countryOfFinalDestination} onChange={e => setCountryOfFinalDestination(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">HP PO #</label>
+            <input type="text" value={hpPo} onChange={e => setHpPo(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Shipping Method</label>
+            <input type="text" value={shippingMethod} onChange={e => setShippingMethod(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Shipping Terms</label>
+            <input type="text" value={shippingTerms} onChange={e => setShippingTerms(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Payment Terms</label>
+            <input type="text" value={paymentTerms} onChange={e => setPaymentTerms(e.target.value)} className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1 tracking-wider uppercase">Due Date</label>
+            <input type="text" value={dueDate} onChange={e => setDueDate(e.target.value)} placeholder="e.g. 2026" className="w-full px-2 py-1.5 text-xs bg-white border border-gray-200 rounded focus:ring-1 focus:ring-slate-800 outline-none" />
           </div>
         </div>
 
@@ -257,31 +365,63 @@ export default function EditOrder({ params }) {
                       {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.units_per_case} units/case)</option>)}
                     </select>
                   </td>
-                  <td className="px-4 py-2 border-r border-gray-100">
-                    <input 
-                      type="number" 
-                      min="1"
-                      className="w-full bg-transparent outline-none text-center text-slate-800 font-bold text-xs"
-                      value={item.cases}
-                      onChange={(e) => updateItem(index, 'cases', e.target.value)}
-                    />
+                  <td className="px-4 py-2 border-r border-gray-100 align-middle">
+                    {(() => {
+                      const isCaseInvalid = item.cases !== '' && item.cases % 1 !== 0;
+                      return (
+                        <input 
+                          type="number" 
+                          min="0.01"
+                          step="any"
+                          placeholder="0"
+                          className={`w-16 mx-auto block border ${isCaseInvalid ? 'border-red-500 bg-red-50 text-red-700 focus:border-red-500 focus:ring-red-500' : 'bg-white border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-800'} outline-none focus:ring-1 rounded-md py-1.5 text-center font-bold text-xs placeholder-slate-400 shadow-sm transition-all`}
+                          value={item.cases}
+                          onChange={(e) => updateItem(index, 'cases', e.target.value)}
+                        />
+                      );
+                    })()}
                   </td>
-                  <td className="px-4 py-2 text-center text-slate-800 border-r border-gray-100 bg-slate-50 font-bold text-xs">
-                    {item.qty}
+                  <td className="px-4 py-2 border-r border-gray-100 bg-slate-50 align-middle">
+                    {(() => {
+                      const isQtyInvalid = item.qty !== '' && item.qty % item.units_per_case !== 0;
+                      return (
+                        <input 
+                          type="number" 
+                          min={item.units_per_case}
+                          step={item.units_per_case}
+                          placeholder="0"
+                          className={`w-20 mx-auto block border ${isQtyInvalid ? 'border-red-500 bg-red-50 text-red-700 focus:border-red-500 focus:ring-red-500' : 'bg-white border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-800'} outline-none focus:ring-1 rounded-md py-1.5 text-center font-bold text-xs placeholder-slate-400 shadow-sm transition-all`}
+                          value={item.qty}
+                          onChange={(e) => updateItem(index, 'qty', e.target.value)}
+                        />
+                      );
+                    })()}
                   </td>
-                  <td className="px-4 py-2 border-r border-gray-100">
-                    <div className="flex items-center justify-end">
-                      <span className="text-slate-400 text-[10px] font-bold mr-1">₹</span>
+                  <td className="px-4 py-2 border-r border-gray-100 align-middle">
+                    <div className="relative w-24 ml-auto">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-bold pointer-events-none">$</span>
                       <input 
                         type="number" 
-                        className="w-16 bg-transparent outline-none text-right text-slate-800 font-bold text-xs"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md pl-6 pr-2 py-1.5 text-right text-slate-800 font-bold text-xs placeholder-slate-400 shadow-sm transition-all outline-none"
                         value={item.unit_cost}
                         onChange={(e) => updateItem(index, 'unit_cost', e.target.value)}
                       />
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-right text-slate-800 font-extrabold border-r border-gray-100 bg-slate-50/80 text-xs">
-                    ₹{item.amount.toFixed(2)}
+                  <td className="px-4 py-2 border-r border-gray-100 bg-slate-50 align-middle">
+                    <div className="relative w-28 ml-auto">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-bold pointer-events-none">$</span>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full bg-white border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md pl-6 pr-2 py-1.5 text-right text-slate-800 font-extrabold text-xs placeholder-slate-400 shadow-sm transition-all outline-none"
+                        value={item.amount}
+                        onChange={(e) => updateItem(index, 'amount', e.target.value)}
+                      />
+                    </div>
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button onClick={() => removeRow(item.id)} className="w-5 h-5 flex items-center justify-center rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition text-xs">✕</button>
@@ -299,15 +439,15 @@ export default function EditOrder({ params }) {
           <div className="w-72 bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
             <div className="flex justify-between mb-3 text-xs font-semibold text-slate-500">
               <span>Sub-total</span>
-              <span className="text-slate-800">₹{subTotal.toFixed(2)}</span>
+              <span className="text-slate-800">${subTotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between mb-3 text-xs font-semibold text-slate-500">
               <span>Tax (0%)</span>
-              <span className="text-slate-800">₹0.00</span>
+              <span className="text-slate-800">$0.00</span>
             </div>
             <div className="flex justify-between pt-3 border-t border-slate-200 text-xl font-extrabold text-slate-800">
               <span>Total</span>
-              <span>₹{subTotal.toFixed(2)}</span>
+              <span>${subTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>

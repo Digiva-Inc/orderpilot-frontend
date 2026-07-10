@@ -5,7 +5,6 @@ import Link from 'next/link';
 
 export default function NewCustomer() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('Address');
   const [isLoading, setIsLoading] = useState(false);
 
   // Form State
@@ -57,7 +56,7 @@ export default function NewCustomer() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.display_name) return alert("Display Name is required");
+    if (!formData.company_name) return alert("Company Name is required");
 
     setIsLoading(true);
     const token = localStorage.getItem('token');
@@ -123,11 +122,11 @@ export default function NewCustomer() {
             <input type="text" name="last_name" placeholder="Last Name" value={formData.last_name} onChange={handleChange} className={inputClass} />
           </div>
 
-          <label className="text-sm text-gray-700 pt-3 font-semibold">Company Name</label>
-          <input type="text" name="company_name" placeholder="Enter company name" value={formData.company_name} onChange={handleChange} className={`${inputClass} max-w-md`} />
+          <label className="text-sm text-gray-700 pt-3 font-semibold flex items-center gap-1">Company Name <span className="text-red-500">*</span></label>
+          <input type="text" name="company_name" placeholder="Enter company name" value={formData.company_name} onChange={handleChange} required className={`${inputClass} max-w-md border-red-200 focus:border-red-500 focus:ring-red-500`} />
 
-          <label className="text-sm text-gray-700 pt-3 font-semibold flex items-center gap-1">Display Name <span className="text-red-500">*</span></label>
-          <input type="text" name="display_name" placeholder="Required for indexing" value={formData.display_name} onChange={handleChange} required className={`${inputClass} max-w-md border-red-200 focus:border-red-500 focus:ring-red-500`} />
+          <label className="text-sm text-gray-700 pt-3 font-semibold flex items-center gap-1">Display Name</label>
+          <input type="text" name="display_name" placeholder="Optional for indexing" value={formData.display_name} onChange={handleChange} className={`${inputClass} max-w-md`} />
 
           <label className="text-sm text-gray-700 pt-3 font-semibold">Email & Phone</label>
           <div className="grid grid-cols-[1fr_120px_120px] gap-4 max-w-2xl">
@@ -140,110 +139,87 @@ export default function NewCustomer() {
           <input type="text" name="default_po_number" placeholder="Blanket PO number (Optional)" value={formData.default_po_number} onChange={handleChange} className={`${inputClass} max-w-md bg-yellow-50/50 border-yellow-200 focus:border-yellow-400 focus:ring-yellow-400`} />
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 mb-8 flex gap-8">
-          {['Other Details', 'Address', 'Custom Fields', 'Reporting Tags', 'Remarks'].map(tab => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`pb-4 text-sm font-semibold transition-all relative ${activeTab === tab ? 'text-black' : 'text-gray-400 hover:text-black'}`}
-            >
-              {tab}
-              {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-black rounded-t-full"></div>}
-            </button>
-          ))}
-        </div>
+        <hr className="border-gray-100 my-10" />
 
-        {/* Tab Content */}
-        <div className="min-h-[300px]">
-          {activeTab === 'Address' && (
-            <div className="grid grid-cols-2 gap-16">
-              {/* Billing Address */}
-              <div className="space-y-5">
-                <h3 className="font-bold text-lg text-black mb-6 tracking-tight">Billing Address</h3>
-                
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">Attention</label>
-                  <input type="text" name="billing_attention" value={formData.billing_attention} onChange={handleChange} className={inputClass} />
-                </div>
-                
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">Country</label>
-                  <input type="text" name="billing_country" value={formData.billing_country} onChange={handleChange} className={inputClass} placeholder="Select or type to add" />
-                </div>
+        {/* Address Content */}
+        <div className="grid grid-cols-2 gap-16">
+          {/* Billing Address */}
+          <div className="space-y-5">
+            <h3 className="font-bold text-lg text-black mb-6 tracking-tight">Billing Address</h3>
+            
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">Attention</label>
+              <input type="text" name="billing_attention" value={formData.billing_attention} onChange={handleChange} className={inputClass} />
+            </div>
+            
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">Country</label>
+              <input type="text" name="billing_country" value={formData.billing_country} onChange={handleChange} className={inputClass} placeholder="Select or type to add" />
+            </div>
 
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4">
-                  <label className="text-sm font-medium text-gray-500 pt-3">Address</label>
-                  <div className="space-y-3">
-                    <input type="text" name="billing_address_1" value={formData.billing_address_1} onChange={handleChange} className={inputClass} placeholder="Street 1" />
-                    <input type="text" name="billing_address_2" value={formData.billing_address_2} onChange={handleChange} className={inputClass} placeholder="Street 2 (Optional)" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">City</label>
-                  <input type="text" name="billing_city" value={formData.billing_city} onChange={handleChange} className={inputClass} />
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">State / ZIP</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="text" name="billing_state" placeholder="State" value={formData.billing_state} onChange={handleChange} className={inputClass} />
-                    <input type="text" name="billing_zip" placeholder="ZIP Code" value={formData.billing_zip} onChange={handleChange} className={inputClass} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Shipping Address */}
-              <div className="space-y-5 relative">
-                <div className="absolute -left-8 top-0 bottom-0 w-px bg-gray-100 hidden lg:block"></div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-lg text-black tracking-tight">Shipping Address</h3>
-                  <button type="button" onClick={copyBillingToShipping} className="text-xs font-bold uppercase tracking-wider text-black bg-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-200 transition">
-                    ↓ Copy Billing
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">Attention</label>
-                  <input type="text" name="shipping_attention" value={formData.shipping_attention} onChange={handleChange} className={inputClass} />
-                </div>
-                
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">Country</label>
-                  <input type="text" name="shipping_country" value={formData.shipping_country} onChange={handleChange} className={inputClass} placeholder="Select or type to add" />
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-start gap-4">
-                  <label className="text-sm font-medium text-gray-500 pt-3">Address</label>
-                  <div className="space-y-3">
-                    <input type="text" name="shipping_address_1" value={formData.shipping_address_1} onChange={handleChange} className={inputClass} placeholder="Street 1" />
-                    <input type="text" name="shipping_address_2" value={formData.shipping_address_2} onChange={handleChange} className={inputClass} placeholder="Street 2 (Optional)" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">City</label>
-                  <input type="text" name="shipping_city" value={formData.shipping_city} onChange={handleChange} className={inputClass} />
-                </div>
-
-                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                  <label className="text-sm font-medium text-gray-500">State / ZIP</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <input type="text" name="shipping_state" placeholder="State" value={formData.shipping_state} onChange={handleChange} className={inputClass} />
-                    <input type="text" name="shipping_zip" placeholder="ZIP Code" value={formData.shipping_zip} onChange={handleChange} className={inputClass} />
-                  </div>
-                </div>
+            <div className="grid grid-cols-[100px_1fr] items-start gap-4">
+              <label className="text-sm font-medium text-gray-500 pt-3">Address</label>
+              <div className="space-y-3">
+                <input type="text" name="billing_address_1" value={formData.billing_address_1} onChange={handleChange} className={inputClass} placeholder="Street 1" />
+                <input type="text" name="billing_address_2" value={formData.billing_address_2} onChange={handleChange} className={inputClass} placeholder="Street 2 (Optional)" />
               </div>
             </div>
-          )}
 
-          {activeTab !== 'Address' && (
-            <div className="flex items-center justify-center h-48 text-gray-400 font-medium bg-gray-50 rounded-xl border border-dashed border-gray-200">
-              {activeTab} fields will be implemented soon
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">City</label>
+              <input type="text" name="billing_city" value={formData.billing_city} onChange={handleChange} className={inputClass} />
             </div>
-          )}
+
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">State / ZIP</label>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" name="billing_state" placeholder="State" value={formData.billing_state} onChange={handleChange} className={inputClass} />
+                <input type="text" name="billing_zip" placeholder="ZIP Code" value={formData.billing_zip} onChange={handleChange} className={inputClass} />
+              </div>
+            </div>
+          </div>
+
+          {/* Shipping Address */}
+          <div className="space-y-5 relative">
+            <div className="absolute -left-8 top-0 bottom-0 w-px bg-gray-100 hidden lg:block"></div>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-lg text-black tracking-tight">Shipping Address</h3>
+              <button type="button" onClick={copyBillingToShipping} className="text-xs font-bold uppercase tracking-wider text-black bg-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-200 transition">
+                ↓ Copy Billing
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">Attention</label>
+              <input type="text" name="shipping_attention" value={formData.shipping_attention} onChange={handleChange} className={inputClass} />
+            </div>
+            
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">Country</label>
+              <input type="text" name="shipping_country" value={formData.shipping_country} onChange={handleChange} className={inputClass} placeholder="Select or type to add" />
+            </div>
+
+            <div className="grid grid-cols-[100px_1fr] items-start gap-4">
+              <label className="text-sm font-medium text-gray-500 pt-3">Address</label>
+              <div className="space-y-3">
+                <input type="text" name="shipping_address_1" value={formData.shipping_address_1} onChange={handleChange} className={inputClass} placeholder="Street 1" />
+                <input type="text" name="shipping_address_2" value={formData.shipping_address_2} onChange={handleChange} className={inputClass} placeholder="Street 2 (Optional)" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">City</label>
+              <input type="text" name="shipping_city" value={formData.shipping_city} onChange={handleChange} className={inputClass} />
+            </div>
+
+            <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+              <label className="text-sm font-medium text-gray-500">State / ZIP</label>
+              <div className="grid grid-cols-2 gap-3">
+                <input type="text" name="shipping_state" placeholder="State" value={formData.shipping_state} onChange={handleChange} className={inputClass} />
+                <input type="text" name="shipping_zip" placeholder="ZIP Code" value={formData.shipping_zip} onChange={handleChange} className={inputClass} />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Footer Actions */}

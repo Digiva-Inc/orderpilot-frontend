@@ -16,7 +16,7 @@ export default function AppLayout({ children }) {
   return (
     <div className="flex flex-grow min-h-screen w-full">
       <Sidebar />
-      <div className="flex-grow flex flex-col">
+      <div className="flex-grow flex flex-col ml-64">
         <Header />
         <main className="p-8 flex-grow">
           {children}
