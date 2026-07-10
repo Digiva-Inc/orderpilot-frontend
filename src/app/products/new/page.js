@@ -110,7 +110,7 @@ export default function NewProduct() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 border-b border-gray-100 pb-8">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">1. Brand</label>
-              <select required value={productData.brand_id} onChange={handleBrandChange} className={inputClass}>
+              <select value={productData.brand_id} onChange={handleBrandChange} className={inputClass}>
                 <option value="" disabled>Select Brand</option>
                 {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
@@ -118,7 +118,7 @@ export default function NewProduct() {
             
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">2. Category</label>
-              <select required value={productData.category_id} onChange={handleCategoryChange} className={inputClass} disabled={!productData.brand_id}>
+              <select value={productData.category_id} onChange={handleCategoryChange} className={inputClass} disabled={!productData.brand_id}>
                 <option value="" disabled>Select Category</option>
                 {filteredCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -126,7 +126,7 @@ export default function NewProduct() {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">3. Sub-Category</label>
-              <select required value={productData.sub_category_id} onChange={(e) => setProductData({...productData, sub_category_id: e.target.value})} className={inputClass} disabled={!productData.category_id}>
+              <select value={productData.sub_category_id} onChange={(e) => setProductData({...productData, sub_category_id: e.target.value})} className={inputClass} disabled={!productData.category_id}>
                 <option value="" disabled>Select Sub-Category</option>
                 {filteredSubCategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
               </select>
