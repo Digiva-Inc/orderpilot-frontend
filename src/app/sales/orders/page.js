@@ -143,7 +143,7 @@ export default function OrdersList() {
                 <td className="px-4 py-3 text-slate-600 text-sm whitespace-nowrap">{order.customer_name}</td>
                 <td className="px-4 py-3 text-slate-500 text-sm whitespace-nowrap">{order.po_number || 'N/A'}</td>
                 <td className="px-4 py-3 text-slate-500 text-sm whitespace-nowrap">{new Date(order.created_at).toLocaleDateString()}</td>
-                <td className="px-4 py-3 font-semibold text-slate-800 text-sm text-right whitespace-nowrap">₹{Number(order.total_amount).toFixed(2)}</td>
+                <td className="px-4 py-3 font-semibold text-slate-800 text-sm text-right whitespace-nowrap">${Number(order.total_amount).toFixed(2)}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                     order.status === 'Invoiced' ? 'bg-slate-800 text-white' :
@@ -264,8 +264,8 @@ export default function OrdersList() {
                         <div className="text-[11px] text-slate-400">SAP: {item.sap_no || 'N/A'} | UPC: {item.upc_no || 'N/A'}</div>
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600 text-center">{item.total_units}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 text-right">₹{Number(item.unit_price).toFixed(2)}</td>
-                      <td className="px-4 py-3 text-sm font-semibold text-slate-800 text-right">₹{Number(item.sub_total).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 text-right">${Number(item.unit_price).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-800 text-right">${Number(item.sub_total).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -273,7 +273,7 @@ export default function OrdersList() {
               <div className="mt-6 flex justify-end">
                 <div className="text-right">
                   <div className="text-sm text-slate-500 mb-1">Total Amount</div>
-                  <div className="text-2xl font-bold text-slate-800">₹{Number(viewOrder.total_amount).toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-slate-800">${Number(viewOrder.total_amount).toFixed(2)}</div>
                 </div>
               </div>
             </div>

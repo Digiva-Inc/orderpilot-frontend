@@ -246,7 +246,7 @@ export default function CreateOrder() {
                   </td>
                   <td className="px-4 py-2 border-r border-gray-100">
                     <div className="flex items-center justify-end">
-                      <span className="text-slate-400 text-[10px] font-bold mr-1">₹</span>
+                      <span className="text-slate-400 text-[10px] font-bold mr-1">$</span>
                       <input 
                         type="number" 
                         className="w-16 bg-transparent outline-none text-right text-slate-800 font-bold text-xs"
@@ -256,7 +256,7 @@ export default function CreateOrder() {
                     </div>
                   </td>
                   <td className="px-4 py-2 text-right text-slate-800 font-extrabold border-r border-gray-100 bg-slate-50/80 text-xs">
-                    ₹{item.amount.toFixed(2)}
+                    ${item.amount.toFixed(2)}
                   </td>
                   <td className="px-4 py-2 text-center">
                     <button onClick={() => removeRow(item.id)} className="w-5 h-5 flex items-center justify-center rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition text-xs">✕</button>
@@ -274,15 +274,15 @@ export default function CreateOrder() {
           <div className="w-72 bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
             <div className="flex justify-between mb-3 text-xs font-semibold text-slate-500">
               <span>Sub-total</span>
-              <span className="text-slate-800">₹{subTotal.toFixed(2)}</span>
+              <span className="text-slate-800">${subTotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between mb-3 text-xs font-semibold text-slate-500">
               <span>Tax (0%)</span>
-              <span className="text-slate-800">₹0.00</span>
+              <span className="text-slate-800">$0.00</span>
             </div>
             <div className="flex justify-between pt-3 border-t border-slate-200 text-xl font-extrabold text-slate-800">
               <span>Total</span>
-              <span>₹{subTotal.toFixed(2)}</span>
+              <span>${subTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>

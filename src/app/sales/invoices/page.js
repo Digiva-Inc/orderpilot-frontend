@@ -125,7 +125,7 @@ export default function InvoicesList() {
                 </td>
                 <td className="px-4 py-3 text-slate-600 text-sm whitespace-nowrap">{invoice.customer_name}</td>
                 <td className="px-4 py-3 text-slate-500 text-sm whitespace-nowrap">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
-                <td className="px-4 py-3 font-semibold text-slate-800 text-sm text-right whitespace-nowrap">₹{Number(invoice.total_amount).toFixed(2)}</td>
+                <td className="px-4 py-3 font-semibold text-slate-800 text-sm text-right whitespace-nowrap">${Number(invoice.total_amount).toFixed(2)}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                     invoice.invoice_status === 'Paid' ? 'bg-slate-800 text-white' :

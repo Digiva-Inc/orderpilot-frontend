@@ -64,7 +64,7 @@ export default function Dashboard() {
           <div className="p-5 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             <h3 className="text-slate-500 font-semibold text-[10px] uppercase tracking-wider mb-1">Total Pipeline Revenue</h3>
             <div className="flex items-end gap-2">
-              <p className="text-2xl font-extrabold text-slate-800 tracking-tight">₹{Number(stats.total_revenue || 0).toLocaleString()}</p>
+              <p className="text-2xl font-extrabold text-slate-800 tracking-tight">${Number(stats.total_revenue || 0).toLocaleString()}</p>
             </div>
             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-blue-50 rounded-full opacity-50 pointer-events-none"></div>
           </div>
@@ -72,7 +72,7 @@ export default function Dashboard() {
           <div className="p-5 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             <h3 className="text-slate-500 font-semibold text-[10px] uppercase tracking-wider mb-1">Paid Revenue (Invoiced)</h3>
             <div className="flex items-end gap-2">
-              <p className="text-2xl font-extrabold text-slate-800 tracking-tight">₹{Number(stats.paid_revenue || 0).toLocaleString()}</p>
+              <p className="text-2xl font-extrabold text-slate-800 tracking-tight">${Number(stats.paid_revenue || 0).toLocaleString()}</p>
             </div>
             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-green-50 rounded-full opacity-50 pointer-events-none"></div>
           </div>
@@ -80,7 +80,7 @@ export default function Dashboard() {
           <div className="p-5 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
             <h3 className="text-slate-500 font-semibold text-[10px] uppercase tracking-wider mb-1">Unpaid Receivables</h3>
             <div className="flex items-end gap-2">
-              <p className="text-2xl font-extrabold text-slate-800 tracking-tight">₹{Number(stats.unpaid_revenue || 0).toLocaleString()}</p>
+              <p className="text-2xl font-extrabold text-slate-800 tracking-tight">${Number(stats.unpaid_revenue || 0).toLocaleString()}</p>
             </div>
             <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-50 rounded-full opacity-50 pointer-events-none"></div>
           </div>
@@ -116,10 +116,10 @@ export default function Dashboard() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(value) => `₹${value}`} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(value) => `$${value}`} />
                     <Tooltip 
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      formatter={(value) => [`₹${value}`, 'Revenue']}
+                      formatter={(value) => [`$${value}`, 'Revenue']}
                     />
                     <Area type="monotone" dataKey="revenue" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                   </AreaChart>
@@ -148,7 +148,7 @@ export default function Dashboard() {
                       <p className="text-xs text-slate-500 truncate max-w-[150px]">{order.customer_name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-slate-800 text-sm">₹{Number(order.total_amount).toFixed(2)}</p>
+                      <p className="font-bold text-slate-800 text-sm">${Number(order.total_amount).toFixed(2)}</p>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                         order.status === 'Invoiced' ? 'bg-amber-100 text-amber-700' :
                         order.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
@@ -166,7 +166,7 @@ export default function Dashboard() {
             )}
           </div>
           <button 
-            onClick={() => router.push('/sales/order-confirmation')}
+            onClick={() => router.push('/sales/orders')}
             className="w-full mt-4 py-2.5 text-sm font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors"
           >
             View All Orders
