@@ -105,6 +105,54 @@ export const generateDocumentPDF = async (documentType, documentData, itemsData)
   drawRightAligned("Terms :", "Due on Receipt", 115);
   drawRightAligned("Due Date :", formattedDate, 121);
 
+  // Metadata Table
+  const metaColumn = [
+    "BRAND", "COUNTRY OF EXPORT", "DELIVERY#", "COUNTRY OF FINAL DESTINATION", 
+    "HP PO#", "SHIPPING METHOD", "SHIPPING TERMS", "PAYMENT TERMS", "DUE DATE"
+  ];
+  
+  const metaRows = [
+    [
+      documentData.brand || '-',
+      documentData.country_of_export || '-',
+      documentData.delivery_number || '-',
+      documentData.country_of_final_destination || '-',
+      documentData.hp_po || '-',
+      documentData.shipping_method || '-',
+      documentData.shipping_terms || '-',
+      documentData.payment_terms || '-',
+      documentData.due_date || '-'
+    ]
+  ];
+
+  autoTable(doc, {
+    startY: 128,
+    head: [metaColumn],
+    body: metaRows,
+    theme: 'grid',
+    headStyles: { 
+      fillColor: [214, 234, 248], // Light blue from screenshot approximation
+      textColor: [33, 47, 60],
+      fontStyle: 'bold',
+      halign: 'center',
+      cellPadding: 2,
+      fontSize: 5
+    },
+    bodyStyles: {
+      textColor: [80, 80, 80],
+      cellPadding: 2,
+      halign: 'center',
+      fontSize: 6
+    },
+    styles: { 
+      font: "helvetica", 
+      lineColor: [220, 220, 220], 
+      lineWidth: 0.1 
+    }
+  });
+
+  const itemsStartY = doc.lastAutoTable.finalY + 8;
+
   // Items Table
   const tableColumn = ["#", "SAP #", "UPC #", "Item & Description", "Qty", "Unit Cost", "Amount"];
   const tableRows = [];
@@ -145,7 +193,7 @@ export const generateDocumentPDF = async (documentType, documentData, itemsData)
   }
 
   autoTable(doc, {
-    startY: 132,
+    startY: itemsStartY,
     head: [tableColumn],
     body: tableRows,
     theme: 'grid',
@@ -184,15 +232,20 @@ export const generateDocumentPDF = async (documentType, documentData, itemsData)
   // Total Row
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.text("Total", 140, finalY);
-  doc.text(totalAmountStr, 196 - doc.getTextWidth(totalAmountStr), finalY);
+  doc.setTextColor(100, 116, 139); // slate-500
+  doc.text("Total", 124, finalY);
+  doc.setTextColor(15, 23, 42); // slate-900
+  doc.text(totalAmountStr, 190 - doc.getTextWidth(totalAmountStr), finalY);
   
   // Highlighted Balance Due Block
-  doc.setFillColor(235, 235, 235);
-  doc.rect(98, finalY + 6, 98, 14, 'F');
+  doc.setFillColor(248, 250, 252); // slate-50
+  doc.setDrawColor(226, 232, 240); // slate-200
+  doc.setLineWidth(0.1);
+  doc.rect(116, finalY + 5, 80, 14, 'FD'); // Fill and draw for a clean border
   
-  doc.text("Balance Due", 140, finalY + 15);
-  doc.text(totalAmountStr, 196 - doc.getTextWidth(totalAmountStr), finalY + 15);
+  doc.setTextColor(15, 23, 42); // slate-900
+  doc.text("Balance Due", 124, finalY + 14);
+  doc.text(totalAmountStr, 190 - doc.getTextWidth(totalAmountStr), finalY + 14);
 
   // Open PDF in a new tab for preview
   const pdfBlob = doc.output('blob');

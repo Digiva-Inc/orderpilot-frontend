@@ -7,6 +7,10 @@ export default function InvoicesList() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+  const [viewInvoice, setViewInvoice] = useState(null);
+  const [viewItems, setViewItems] = useState([]);
+  const [statusModalInvoice, setStatusModalInvoice] = useState(null);
+  const [newStatus, setNewStatus] = useState('');
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -69,11 +73,32 @@ export default function InvoicesList() {
     }
   };
 
-  const handleToggleStatus = async (invoice) => {
-    const newStatus = invoice.invoice_status === 'Paid' ? 'Unpaid' : 'Paid';
+  const handleView = async (invoice) => {
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/invoices/${invoice.invoice_id}/status`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const res = await fetch(`${API_URL}/api/orders/${invoice.order_id}/items`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setViewItems(await res.json());
+        setViewInvoice(invoice);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleOpenStatusModal = (invoice) => {
+    setStatusModalInvoice(invoice);
+    setNewStatus(invoice.invoice_status);
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!statusModalInvoice || !newStatus) return;
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/invoices/${statusModalInvoice.invoice_id}/status`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -82,7 +107,8 @@ export default function InvoicesList() {
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
-        setInvoices(invoices.map(i => i.invoice_id === invoice.invoice_id ? { ...i, invoice_status: newStatus } : i));
+        setInvoices(invoices.map(i => i.invoice_id === statusModalInvoice.invoice_id ? { ...i, invoice_status: newStatus } : i));
+        setStatusModalInvoice(null);
       }
     } catch (err) {
       console.error(err);
@@ -137,8 +163,8 @@ export default function InvoicesList() {
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   <div className="flex justify-end items-center gap-1">
                     <button 
-                      onClick={() => handleDownloadPDF(invoice)}
-                      title="Preview PDF"
+                      onClick={() => handleView(invoice)}
+                      title="View Details"
                       className="p-1.5 text-slate-400 rounded-full hover:bg-slate-100 hover:text-slate-800 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,8 +173,17 @@ export default function InvoicesList() {
                       </svg>
                     </button>
                     <button 
-                      onClick={() => handleToggleStatus(invoice)}
-                      title="Toggle Paid/Unpaid Status"
+                      onClick={() => handleDownloadPDF(invoice)}
+                      title="Download/Preview PDF"
+                      className="p-1.5 text-slate-400 rounded-full hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => handleOpenStatusModal(invoice)}
+                      title="Change Status"
                       className="p-1.5 text-slate-400 rounded-full hover:bg-slate-100 hover:text-slate-800 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,6 +224,95 @@ export default function InvoicesList() {
           >
             Next
           </button>
+        </div>
+      )}
+
+      {/* Change Status Modal */}
+      {statusModalInvoice && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-fade-in flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-start">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800">Update Invoice Status</h3>
+                <p className="text-sm text-slate-500 mt-1">INV-{statusModalInvoice.invoice_id} • {statusModalInvoice.customer_name}</p>
+              </div>
+              <button onClick={() => setStatusModalInvoice(null)} className="p-2 bg-slate-50 text-slate-400 hover:text-slate-700 rounded-full transition">✕</button>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">New Status</label>
+              <select 
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                className="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-800 font-medium"
+              >
+                <option value="Unpaid">Unpaid</option>
+                <option value="Paid">Paid</option>
+                <option value="Overdue">Overdue</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              
+              <div className="mt-8 flex justify-end gap-3">
+                <button 
+                  onClick={() => setStatusModalInvoice(null)}
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleUpdateStatus}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  Save Status
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Invoice Modal */}
+      {viewInvoice && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden animate-fade-in flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-start">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">Commercial Invoice INV-{viewInvoice.invoice_id}</h3>
+                <p className="text-sm text-slate-500 mt-1">{viewInvoice.customer_name} • Order Ref: {viewInvoice.order_number}</p>
+              </div>
+              <button onClick={() => setViewInvoice(null)} className="p-2 bg-slate-50 text-slate-400 hover:text-slate-700 rounded-full transition">✕</button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-y border-slate-200">
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-600">Item & Description</th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-600 text-center">Qty</th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-600 text-right">Unit Cost</th>
+                    <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-600 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {viewItems.map(item => (
+                    <tr key={item.id} className="hover:bg-slate-50/50">
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-semibold text-slate-800">{item.product_name}</div>
+                        <div className="text-[11px] text-slate-400">SAP: {item.sap_no || 'N/A'} | UPC: {item.upc_no || 'N/A'}</div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600 text-center">{item.total_units}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 text-right">${Number(item.unit_price).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-slate-800 text-right">${Number(item.sub_total).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-6 flex justify-end">
+                <div className="text-right">
+                  <div className="text-sm text-slate-500 mb-1">Total Amount Due</div>
+                  <div className="text-2xl font-bold text-slate-800">${Number(viewInvoice.total_amount).toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
