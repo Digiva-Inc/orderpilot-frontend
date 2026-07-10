@@ -7,7 +7,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 border-r border-gray-200 p-6 h-screen bg-white flex flex-col">
+    <aside className="w-64 min-w-[16rem] max-w-[16rem] flex-shrink-0 border-r border-gray-200 p-6 h-screen fixed top-0 left-0 bg-white flex flex-col overflow-y-auto">
       <div className="mb-8 px-2">
         <img
           src="/logo.svg"
